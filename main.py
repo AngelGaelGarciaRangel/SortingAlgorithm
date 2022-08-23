@@ -34,7 +34,7 @@ def draw(draw_info, algo_name, ascending):
   draw_info.window.blit(title, (draw_info.width/2 - title.get_width()/2, 5))
   controls = draw_info.FONT.render("R - Reset | Space - Start sorting | A - Ascending | D - Descending", 1, draw_info.BLACK)
   draw_info.window.blit(controls, (draw_info.width/2 - controls.get_width()/2, 45))
-  sorting = draw_info.FONT.render("I - Insertion Sort | B - Bubble Sort", 1, draw_info.BLACK)
+  sorting = draw_info.FONT.render("I - Insertion Sort | B - Bubble Sort | S - Swap Sort | E - Selection Sort", 1, draw_info.BLACK)
   draw_info.window.blit(sorting, (draw_info.width/2 - sorting.get_width()/2, 75))
   draw_list(draw_info)
   pygame.display.update()
@@ -58,7 +58,56 @@ def generate_starting_list(n, min_val, max_val):
     val = random.randint(min_val, max_val)
     lst.append(val)
   return lst
-#Function that will be checking for the events
+def quickSort_helper(draw_info, start, end):
+  lst = draw_info.lst
+  if(start >= end):
+    return;
+  else:
+    pivot = start;
+    left_pointer = start + 1;
+    right_pointer = end;
+    while(left_pointer <= right_pointer):
+      if(lst[left_pointer] > lst[pivot] and lst[right_pointer] < lst[pivot]):
+        lst[left_pointer], lst[right_pointer] = lst[right_pointer], lst[left_pointer]
+        draw_list(draw_info, {left_pointer:draw_info.GREEN, right_pointer:draw_info.RED}, True)
+        yield True
+      if(lst[left_pointer] <= lst[pivot]):
+        left_pointer = left_pointer + 1
+      if(lst[right_pointer] >= lst[pivot]):
+        right_pointer = right_pointer - 1
+    lst[pivot], lst[right_pointer] = lst[right_pointer], lst[pivot]
+    draw_list(draw_info, {pivot:draw_info.GREEN, right_pointer:draw_info.RED}, True)
+    yield True
+    if((right_pointer - 1) - start <= end - (right_pointer + 1)):
+      quickSort_helper(draw_info, start, right_pointer - 1);
+      quickSort_helper(draw_info, right_pointer + 1, end);
+    else:
+      quickSort_helper(draw_info, right_pointer + 1, end);
+      quickSort_helper(draw_info, start, right_pointer - 1);
+  return lst
+def quickSort_sort(draw_info):
+  lst = quickSort_helper(draw_info, 0, len(draw_info.lst) - 1)
+  return lst
+def selection_sort(draw_info, ascending=True):
+  lst = draw_info.lst
+  for i in range(len(lst) - 1):
+    valorMinimoIndice = i
+    for j in range(i + 1, len(lst)):
+      if(lst[j] < lst[valorMinimoIndice] and ascending) or (lst[j] > lst[valorMinimoIndice] and not ascending):
+        valorMinimoIndice = j;
+    lst[i], lst[valorMinimoIndice] = lst[valorMinimoIndice], lst[i]
+    draw_list(draw_info, {i:draw_info.GREEN, i + 1:draw_info.RED}, True)
+    yield True
+  return lst
+def swap_sort(draw_info, ascending=True):
+  lst = draw_info.lst
+  for n in range(len(lst) - 1):
+    for i in range(n + 1, len(lst)):
+      if (lst[n] > lst[i] and ascending) or (lst[n] < lst[i] and not ascending) :
+        lst[n], lst[i] = lst[i], lst[n]
+        draw_list(draw_info, {i:draw_info.GREEN, i + 1:draw_info.RED}, True)
+        yield True
+  return lst
 def bubble_sort(draw_info, ascending=True):
   lst = draw_info.lst
   for i in range(len(lst) - 1):
@@ -118,7 +167,7 @@ def main():
         sorting = False
       elif event.key == pygame.K_SPACE and sorting == False:
         sorting = True
-        sorting_algoritm_generator = sorting_algoritm(draw_info, ascending)
+        sorting_algoritm_generator = sorting_algoritm(draw_info)
       elif event.key == pygame.K_a and not sorting:
         ascending = True
       elif event.key == pygame.K_d and not sorting:
@@ -129,8 +178,16 @@ def main():
       elif event.key == pygame.K_b and not sorting:
         sorting_algoritm = bubble_sort
         sorting_algo_name = "Bubble Sort"
+      elif event.key == pygame.K_s and not sorting:
+        sorting_algoritm = swap_sort
+        sorting_algo_name = "Swap Sort"
+      elif event.key == pygame.K_e and not sorting:
+        sorting_algoritm = selection_sort
+        sorting_algo_name = "Selection Sort"
+      elif event.key == pygame.K_q and not sorting:
+        sorting_algoritm = quickSort_sort
+        sorting_algo_name = "Quicksort"
         
   pygame.quit()
 if __name__ == "__main__":
   main()
-
